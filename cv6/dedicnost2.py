@@ -58,7 +58,8 @@ for item in employe_list:
     if hasattr(item,"car"):
         print(item.car)
 
-hodnota_atributu = getattr(marketa, "car", "nema auto")
+prom = "car"
+hodnota_atributu = getattr(marketa, prom, "nema autoXXX")
 print(hodnota_atributu)
 hodnota_atributu = getattr(frantisek, "car", "nema auto")
 print(hodnota_atributu)
