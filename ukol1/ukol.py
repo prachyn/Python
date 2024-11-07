@@ -31,7 +31,7 @@ class Residence(Property):
         return math.ceil(self.area * self.locality.locality_coefficient * 15 * nasobime )
 
         
-# Tvorim lokality
+# Tvorim lokality a testuji
 testlok = Locality('Testov',2)
 testlok2 = Locality('Testov2',3)
 manetin = Locality('Manětín', 0.8)
