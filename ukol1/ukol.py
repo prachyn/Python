@@ -1,13 +1,16 @@
 import math
 
+
 class Locality:
     def __init__(self, name, locality_coefficient):
         self.name = name
         self.locality_coefficient = locality_coefficient
 
+
 class Property:
     def __init__(self, locality):
         self.locality = locality
+
 
 class Estate(Property):
     def __init__(self, locality, estate_type, area):
@@ -16,19 +19,25 @@ class Estate(Property):
         self.area = area
 
     def calculate_tax(self):
-        estate_type_coefficients = {"land":0.85, "building_site":9, "forrest":0.35, "garden":2}
+        estate_type_coefficients = {"land": 0.85,
+                                    "building_site": 9,
+                                    "forrest": 0.35,
+                                    "garden": 2}
+
         return math.ceil(self.area * estate_type_coefficients[self.estate_type] * self.locality.locality_coefficient)
+
 
 class Residence(Property):
     def __init__(self, locality, area, commercial):
         super().__init__(locality)        
         self.area = area
         self.commercial = commercial
+
     def calculate_tax(self):
-        nasobime = 1
+        coefficient = 1
         if self.commercial:
-            nasobime = 2
-        return math.ceil(self.area * self.locality.locality_coefficient * 15 * nasobime )
+            coefficient = 2
+        return math.ceil(self.area * self.locality.locality_coefficient * 15 * coefficient)
 
         
 # Tvorim lokality a testuji
@@ -54,4 +63,3 @@ print(f"Office tax: {kancl.calculate_tax()}")
 print(f"Testovaci lokalita: {testprop.calculate_tax()}")
 print(f"Testovaci byt false: {testbyt.calculate_tax()}")
 print(f"Testovaci byt podnikani: {testbytpodnikani.calculate_tax()}")
-
