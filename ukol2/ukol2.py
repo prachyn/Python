@@ -1,8 +1,7 @@
 import requests
 
 
-def vyhledat_podnikatelsky_subjekt_ico():
-    ico = input("Zadejte ICO: ")
+def search_subject(ico: str) -> str:
     url = f"https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/{ico}"
     response = requests.get(url)
 
@@ -10,58 +9,63 @@ def vyhledat_podnikatelsky_subjekt_ico():
         data = response.json()
         obchodni_jmeno = data['obchodniJmeno']
         adresa = data['sidlo']['textovaAdresa']
-        print(f"{obchodni_jmeno}\n{adresa}")
-    else:
-        print("Nepodarilo se najit subjekt s danym ICO.")
-
-vyhledat_podnikatelsky_subjekt_ico()
+        return f"{obchodni_jmeno}\n{adresa}"
+    return f"Nepodarilo se najit subjekt s danym ICO: {ico}. Kód chyby: {response.status_code}"
 
 
-def stahnout_ciselnik_pravnich_forem():
+def get_code_list() -> list:
     url = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ciselniky-nazevniky/vyhledat"
+
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    data = '{"kodCiselniku": "PravniForma", "zdrojCiselniku": "res"}'
-    response = requests.post(url, headers=headers, data=data)
+
+    data = {"kodCiselniku": "PravniForma", "zdrojCiselniku": "res"}
+    response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
         data = response.json()
         return data['ciselniky'][0]['polozkyCiselniku']
-    else:
-        print("Nepodařilo se stáhnout číselník právních forem.")
-        return {}
-
-ciselnik = stahnout_ciselnik_pravnich_forem()
+    return [f"Nepodařilo se stáhnout číselník právních forem. Kód odpovědi: {response.status_code}"]
 
 
-def find_legal_form(kod, polozky_ciselniku):
-    for polozka in polozky_ciselniku:
-        if polozka['kod'] == kod:
-            return polozka['nazev']
-    return "Neznámá právní forma"
+def find_legal_form(code: str, code_list: list) -> dict:
+    for item in code_list:
+        if item['kod'] == code:
+            return item['nazev'][0]
+    return {"Chyba": "Neznámá právní forma"}
 
 
-def vyhledat_podnikatelsky_subjekt_nazev():
-    nazev = input("Zadejte cast nazvu subjektu: ")
+def search_subjects_by_name(subject_name) -> list:
     url = "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/vyhledat"
+
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    data = f'{{"obchodniJmeno": "{nazev}"}}'
-    response = requests.post(url, headers=headers, data=data)
+
+    data = {"obchodniJmeno": subject_name}
+    response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
+        results = []
         data = response.json()
         print(f"Nalezeno subjektů: {data['pocetCelkem']}")
-        for subjekt in data['ekonomickeSubjekty']:
-#            print(f"{subjekt['obchodniJmeno']}, {subjekt['ico']}")
-            pravni_forma_kod = subjekt['pravniForma']
-            pravni_forma = find_legal_form(pravni_forma_kod, ciselnik)
-            print(f"{subjekt['obchodniJmeno']}, {subjekt['ico']}, {pravni_forma[0]['nazev']}")
-    else:
-        print("Nepodarilo se vyhledat.")
+        for subject in data['ekonomickeSubjekty']:
+            legal_form_code = subject['pravniForma']
+            legal_form = find_legal_form(legal_form_code, get_code_list())
+            results.append(f"{subject['obchodniJmeno']}, {subject['ico']}, {legal_form['nazev']}")
+        return results
+    return [f"Nepodarilo se vyhledat. Kód chyby: {response.status_code}"]
 
-vyhledat_podnikatelsky_subjekt_nazev()
+
+def main():
+    ico = input("Vložte ICO hledaného subjektu: ")
+    print(search_subject(ico))
+
+    subject_name = input("Vložte jméno subjektu: ")
+    for subject in search_subjects_by_name(subject_name):
+        print(subject)
+
+main()
